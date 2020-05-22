@@ -1,7 +1,7 @@
 #ifndef BITMAP_H_INCLUDED
 #define BITMAP_H_INCLUDED
 
-#include <pebble.h>
+#include "c25k-pebble.h"
 
 extern GBitmap* image_arrow_down;
 extern GBitmap* image_arrow_right;

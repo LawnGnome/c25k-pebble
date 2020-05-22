@@ -7,6 +7,10 @@ static const GColor ACTIVE_BG = GColorGreen;
 static const GColor ACTIVE_FG = GColorBlack;
 static const GColor INACTIVE_BG = GColorLightGray;
 static const GColor INACTIVE_FG = GColorDarkGray;
+static const int16_t FONT_SIZE_LABEL = 14;
+static const int16_t FONT_SIZE_VALUE = 28;
+static const int16_t VERTICAL_PADDING_LABEL = 6;
+static const int16_t VERTICAL_PADDING_VALUE = 8;
 
 struct _number_layer_t {
   int8_t min;
@@ -33,6 +37,11 @@ NumberLayer* number_layer_create(GRect frame,
                                  int8_t max,
                                  int8_t initial) {
   NumberLayer* layer = malloc(sizeof(NumberLayer));
+  static const int16_t total_height = FONT_SIZE_LABEL + FONT_SIZE_VALUE +
+                                      VERTICAL_PADDING_LABEL +
+                                      VERTICAL_PADDING_VALUE * 2;
+  const int16_t y_offset =
+      total_height < frame.size.h ? (frame.size.h - total_height) / 2 : 0;
 
   layer->min = min;
   layer->max = max;
@@ -41,14 +50,11 @@ NumberLayer* number_layer_create(GRect frame,
   memset(layer->value_str, 0, sizeof(layer->value_str));
   layer->label_str = strdup(label);
 
-  LOG_DEBUG("%s: origin: %d,%d; size: %d,%d", __func__, frame.origin.x,
-            frame.origin.y, frame.size.w, frame.size.h);
-
   layer->root = layer_create(frame);
 
   layer->label = text_layer_create((GRect){
-      .origin = {0, 0},
-      .size = {frame.size.w, frame.size.h / 4},
+      .origin = {0, y_offset},
+      .size = {frame.size.w, FONT_SIZE_LABEL + VERTICAL_PADDING_LABEL},
   });
   text_layer_set_background_color(layer->label, GColorClear);
   text_layer_set_text_color(layer->label, GColorDarkGray);
@@ -59,8 +65,8 @@ NumberLayer* number_layer_create(GRect frame,
   layer_add_child(layer->root, text_layer_get_layer(layer->label));
 
   layer->current = text_layer_create((GRect){
-      .origin = {0, frame.size.h * 0.5},
-      .size = {frame.size.w, frame.size.h / 4},
+      .origin = {0, y_offset + FONT_SIZE_LABEL + VERTICAL_PADDING_LABEL},
+      .size = {frame.size.w, FONT_SIZE_VALUE + VERTICAL_PADDING_VALUE * 2},
   });
   text_layer_set_font(layer->current,
                       fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD));
@@ -68,9 +74,6 @@ NumberLayer* number_layer_create(GRect frame,
   text_layer_set_text(layer->current, layer->value_str);
   number_layer_set_active(layer, false);
   number_layer_update_current_value(layer);
-  LOG_DEBUG("%s: text layer content size: %d,%d", __func__,
-            text_layer_get_content_size(layer->current).w,
-            text_layer_get_content_size(layer->current).h);
   layer_add_child(layer->root, text_layer_get_layer(layer->current));
 
   return layer;

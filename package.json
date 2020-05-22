@@ -1,12 +1,14 @@
 {
   "name": "c25k-pebble",
-  "author": "MakeAwesomeHappen",
-  "version": "1.0.0",
-  "keywords": ["pebble-app"],
+  "author": "Adam Harvey",
+  "version": "0.1.0",
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
   "dependencies": {},
   "pebble": {
-    "displayName": "c25k-pebble",
+    "displayName": "C25K Timer",
     "uuid": "a866d723-a31f-478c-9f0a-65f96ae323c4",
     "sdkVersion": "3",
     "enableMultiJS": true,

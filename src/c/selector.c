@@ -1,7 +1,9 @@
 #include "selector.h"
-#include "number.h"
 
 #include <memory.h>
+
+#include "bitmap.h"
+#include "number.h"
 
 static const uint16_t REPEAT_INTERVAL_MS = 250;
 
@@ -52,8 +54,18 @@ static NumberLayer* selector_window_get_active(SelectorWindow* selector) {
 static void selector_window_set_active(SelectorWindow* selector,
                                        selector_control_t control) {
   selector->active = control;
-  number_layer_set_active(selector->week, selector->active == SELECTOR_WEEK);
-  number_layer_set_active(selector->day, selector->active == SELECTOR_DAY);
+
+  if (selector->active == SELECTOR_WEEK) {
+    number_layer_set_active(selector->week, true);
+    number_layer_set_active(selector->day, false);
+    action_bar_layer_set_icon_animated(selector->action_bar, BUTTON_ID_SELECT,
+                                       image_arrow_right, true);
+  } else {
+    number_layer_set_active(selector->week, false);
+    number_layer_set_active(selector->day, true);
+    action_bar_layer_set_icon_animated(selector->action_bar, BUTTON_ID_SELECT,
+                                       image_tick, true);
+  }
 }
 
 static void on_button_back(ClickRecognizerRef ref, void* ctx) {
@@ -123,10 +135,15 @@ static void on_load(Window* window) {
             bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
 
   selector->action_bar = action_bar_layer_create();
-  action_bar_layer_add_to_window(selector->action_bar, window);
+  action_bar_layer_set_icon(selector->action_bar, BUTTON_ID_UP, image_arrow_up);
+  action_bar_layer_set_icon(selector->action_bar, BUTTON_ID_DOWN,
+                            image_arrow_down);
+  action_bar_layer_set_icon(selector->action_bar, BUTTON_ID_SELECT,
+                            image_arrow_right);
   action_bar_layer_set_context(selector->action_bar, selector);
   action_bar_layer_set_click_config_provider(selector->action_bar,
                                              click_config_provider);
+  action_bar_layer_add_to_window(selector->action_bar, window);
 
   selector->status_bar = status_bar_layer_create();
   layer_add_child(root, status_bar_layer_get_layer(selector->status_bar));

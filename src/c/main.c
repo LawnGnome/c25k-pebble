@@ -1,3 +1,4 @@
+#include "bitmap.h"
 #include "c25k-pebble.h"
 #include "selector.h"
 
@@ -10,8 +11,12 @@ static void on_submit(int8_t week, int8_t day, void* userdata) {
 }
 
 int main(void) {
+  SelectorWindow* selector;
+
+  bitmap_init();
+
   // TODO: pull initial state from a cache.
-  SelectorWindow* selector = selector_window_create(
+  selector = selector_window_create(
       (SelectorCallbacks){
           .on_cancel = on_cancel,
           .on_submit = on_submit,
@@ -23,4 +28,5 @@ int main(void) {
   app_event_loop();
 
   selector_window_destroy(selector);
+  bitmap_deinit();
 }

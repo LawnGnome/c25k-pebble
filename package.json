@@ -25,7 +25,28 @@
       "dummy"
     ],
     "resources": {
-      "media": []
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ARROW_DOWN",
+          "file": "images/actionbar-icons/action_bar_icon_down.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ARROW_RIGHT",
+          "file": "images/arrow-right.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ARROW_UP",
+          "file": "images/actionbar-icons/action_bar_icon_up.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_TICK",
+          "file": "images/actionbar-icons/action_bar_icon_check.png"
+        }
+      ]
     }
   }
 }

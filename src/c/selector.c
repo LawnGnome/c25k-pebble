@@ -19,6 +19,7 @@ typedef struct {
 
 struct _selector_t {
   Window* window;
+  ActionBarLayer* action_bar;
   StatusBarLayer* status_bar;
   NumberLayer* week;
   NumberLayer* day;
@@ -56,7 +57,7 @@ static void selector_window_set_active(SelectorWindow* selector,
 }
 
 static void on_button_back(ClickRecognizerRef ref, void* ctx) {
-  SelectorWindow* selector = selector_retrieve(ctx);
+  SelectorWindow* selector = (SelectorWindow*)ctx;
 
   if (selector->active == SELECTOR_DAY) {
     selector_window_set_active(selector, SELECTOR_WEEK);
@@ -66,13 +67,13 @@ static void on_button_back(ClickRecognizerRef ref, void* ctx) {
 }
 
 static void on_button_down(ClickRecognizerRef ref, void* ctx) {
-  SelectorWindow* selector = selector_retrieve(ctx);
+  SelectorWindow* selector = (SelectorWindow*)ctx;
 
   number_layer_decrement_value(selector_window_get_active(selector));
 }
 
 static void on_button_select(ClickRecognizerRef ref, void* ctx) {
-  SelectorWindow* selector = selector_retrieve(ctx);
+  SelectorWindow* selector = (SelectorWindow*)ctx;
 
   if (selector->active == SELECTOR_WEEK) {
     selector_window_set_active(selector, SELECTOR_DAY);
@@ -84,7 +85,7 @@ static void on_button_select(ClickRecognizerRef ref, void* ctx) {
 }
 
 static void on_button_up(ClickRecognizerRef ref, void* ctx) {
-  SelectorWindow* selector = selector_retrieve(ctx);
+  SelectorWindow* selector = (SelectorWindow*)ctx;
 
   number_layer_increment_value(selector_window_get_active(selector));
 }
@@ -121,9 +122,19 @@ static void on_load(Window* window) {
   LOG_DEBUG("%s: unobstructed bounds: origin: %d,%d; size: %d,%d", __func__,
             bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
 
+  selector->action_bar = action_bar_layer_create();
+  action_bar_layer_add_to_window(selector->action_bar, window);
+  action_bar_layer_set_context(selector->action_bar, selector);
+  action_bar_layer_set_click_config_provider(selector->action_bar,
+                                             click_config_provider);
+
   selector->status_bar = status_bar_layer_create();
   layer_add_child(root, status_bar_layer_get_layer(selector->status_bar));
+
+  // Adjust the bounds we use to lay out the number layers for the fixed
+  // elements.
   bounds.size.h -= STATUS_BAR_LAYER_HEIGHT;
+  bounds.size.w -= ACTION_BAR_WIDTH;
   bounds.origin.y = STATUS_BAR_LAYER_HEIGHT;
   number_layer_size = (GSize){
       .w = (bounds.size.w / 2) - (PADDING_SIZE * 1.5),
@@ -154,6 +165,7 @@ static void on_load(Window* window) {
 static void on_unload(Window* window) {
   SelectorWindow* selector = selector_retrieve(window_get_user_data(window));
 
+  action_bar_layer_destroy(selector->action_bar);
   status_bar_layer_destroy(selector->status_bar);
   number_layer_destroy(selector->week);
   number_layer_destroy(selector->day);
@@ -174,8 +186,6 @@ SelectorWindow* selector_window_create(SelectorCallbacks callbacks,
   window_set_user_data(selector->window, selector);
   LOG_DEBUG("%s, window: %p; selector: %p", __func__, selector->window,
             selector);
-
-  window_set_click_config_provider(selector->window, click_config_provider);
 
   window_set_window_handlers(selector->window, (WindowHandlers){
                                                    .load = on_load,

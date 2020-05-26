@@ -166,7 +166,7 @@ static void on_load(Window* window) {
 }
 
 static void on_unload(Window* window) {
-  SelectorWindow* selector = selector_retrieve(window_get_user_data(window));
+  SelectorWindow* selector = selector_retrieve(window);
 
   action_bar_layer_destroy(selector->action_bar);
   status_bar_layer_destroy(selector->status_bar);

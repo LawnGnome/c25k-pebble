@@ -29,6 +29,6 @@ void bitmap_deinit(void) {
   size_t i;
 
   for (i = 0; i < sizeof(mappings) / sizeof(mappings[0]); i++) {
-    *mappings[i].bitmap = gbitmap_create_with_resource(mappings[i].resource);
+    gbitmap_destroy(*mappings[i].bitmap);
   }
 }

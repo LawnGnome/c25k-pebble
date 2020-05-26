@@ -271,6 +271,17 @@ static const struct {
     },
 };
 
+time_t programme_duration(const Programme* programme) {
+  time_t duration = 0;
+  size_t i;
+
+  for (i = 0; programme->phases[i].state != PROGRAMME_STATE_END; i++) {
+    duration += programme->phases[i].duration;
+  }
+
+  return duration;
+}
+
 const Programme* programme_get(int8_t week, int8_t day) {
   size_t i;
 
@@ -298,30 +309,51 @@ void programme_iterate_states(const Programme* programme,
   }
 }
 
-time_t programme_state_duration(const Programme* programme) {
+time_t programme_phase_remaining_at(const Programme* programme, time_t at) {
   time_t duration = 0;
   size_t i;
-
-  for (i = 0; programme->phases[i].state != PROGRAMME_STATE_END; i++) {
-    duration += programme->phases[i].duration;
-  }
-
-  return duration;
-}
-
-ProgrammeState programme_state_at(const Programme* programme, time_t at) {
-  time_t duration = 0;
-  size_t i;
-  ProgrammeState current_state = programme->phases[0].state;
 
   for (i = 0; programme->phases[i].state != PROGRAMME_STATE_END; i++) {
     duration += programme->phases[i].duration;
 
     if (duration >= at) {
-      return current_state;
+      return duration - at;
     }
-    current_state = programme->phases[i].state;
   }
 
-  return current_state;
+  return 0;
+}
+
+ProgrammeState programme_state_at(const Programme* programme, time_t at) {
+  time_t duration = 0;
+  size_t i;
+
+  for (i = 0; programme->phases[i].state != PROGRAMME_STATE_END; i++) {
+    duration += programme->phases[i].duration;
+
+    if (duration >= at) {
+      return programme->phases[i].state;
+    }
+  }
+
+  return PROGRAMME_STATE_END;
+}
+
+const char* programme_state_string(ProgrammeState state) {
+  switch (state) {
+    case PROGRAMME_STATE_WARM_UP:
+      return "Warmup";
+
+    case PROGRAMME_STATE_WALK:
+      return "Walk";
+
+    case PROGRAMME_STATE_RUN:
+      return "Run!";
+
+    case PROGRAMME_STATE_WARM_DOWN:
+      return "Warmdown";
+
+    default:
+      return "¯\\_(ツ)_/¯";
+  }
 }

@@ -18,11 +18,14 @@ typedef void (*ProgrammeStateIterator)(time_t at,
                                        ProgrammeState state,
                                        void* userdata);
 
+extern time_t programme_duration(const Programme* programme);
 extern const Programme* programme_get(int8_t week, int8_t day);
 extern void programme_iterate_states(const Programme* programme,
                                      ProgrammeStateIterator on_state,
                                      void* userdata);
-extern time_t programme_state_duration(const Programme* programme);
+extern time_t programme_phase_remaining_at(const Programme* programme,
+                                           time_t at);
 extern ProgrammeState programme_state_at(const Programme* programme, time_t at);
+extern const char* programme_state_string(ProgrammeState state);
 
 #endif

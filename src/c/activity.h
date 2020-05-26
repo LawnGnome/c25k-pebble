@@ -2,6 +2,7 @@
 #define ACTIVITY_H_DEFINED
 
 #include "c25k-pebble.h"
+#include "programme.h"
 
 typedef struct ActivityWindow ActivityWindow;
 
@@ -10,10 +11,11 @@ typedef struct {
   void* userdata;
 } ActivityCallbacks;
 
-extern ActivityWindow* activity_window_create(int8_t week,
-                                              int8_t day,
-                                              ActivityCallbacks callbacks);
+extern ActivityWindow* activity_window_create(ActivityCallbacks callbacks);
 extern void activity_window_destroy(ActivityWindow* activity);
 extern Window* activity_window_get_window(ActivityWindow* activity);
+extern void activity_window_set_active(ActivityWindow* activity, bool active);
+extern void activity_window_set_programme(ActivityWindow* activity,
+                                          const Programme* programme);
 
 #endif

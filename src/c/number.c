@@ -3,10 +3,11 @@
 #include <memory.h>
 #include <string.h>
 
-static const GColor ACTIVE_BG = GColorGreen;
-static const GColor ACTIVE_FG = GColorBlack;
-static const GColor INACTIVE_BG = GColorLightGray;
-static const GColor INACTIVE_FG = GColorDarkGray;
+static const GColor ACTIVE_BG = COLOR_FALLBACK(GColorGreen, GColorBlack);
+static const GColor ACTIVE_FG = COLOR_FALLBACK(GColorBlack, GColorWhite);
+static const GColor INACTIVE_BG = COLOR_FALLBACK(GColorLightGray, GColorWhite);
+static const GColor INACTIVE_FG =
+    COLOR_FALLBACK(GColorDarkGray, GColorDarkGray);
 static const int16_t FONT_SIZE_LABEL = 14;
 static const int16_t FONT_SIZE_VALUE = 28;
 static const int16_t VERTICAL_PADDING_LABEL = 6;

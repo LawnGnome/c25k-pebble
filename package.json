@@ -43,6 +43,16 @@
         },
         {
           "type": "bitmap",
+          "name": "IMAGE_PAUSE",
+          "file": "images/actionbar-icons/music_icon_pause.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_PLAY",
+          "file": "images/actionbar-icons/music_icon_play.png"
+        },
+        {
+          "type": "bitmap",
           "name": "IMAGE_TICK",
           "file": "images/actionbar-icons/action_bar_icon_check.png"
         }

@@ -103,11 +103,6 @@ static void on_button_up(ClickRecognizerRef ref, void* ctx) {
 }
 
 static void click_config_provider(void* ctx) {
-  Window* window = (Window*)ctx;
-
-  LOG_DEBUG("%s: window: %p; selector: %p", __func__, window,
-            window_get_user_data(window));
-
   window_single_repeating_click_subscribe(BUTTON_ID_DOWN, REPEAT_INTERVAL_MS,
                                           on_button_down);
   window_single_repeating_click_subscribe(BUTTON_ID_UP, REPEAT_INTERVAL_MS,
@@ -130,10 +125,6 @@ static void on_load(Window* window) {
   GRect bounds = calculate_bounds_with_status_action_bars(root);
   GSize number_layer_size;
 
-  LOG_DEBUG("%s: window: %p; selector: %p", __func__, window, selector);
-  LOG_DEBUG("%s: unobstructed bounds: origin: %d,%d; size: %d,%d", __func__,
-            bounds.origin.x, bounds.origin.y, bounds.size.w, bounds.size.h);
-
   selector->action_bar = action_bar_layer_create();
   action_bar_layer_set_icon(selector->action_bar, BUTTON_ID_UP, image_arrow_up);
   action_bar_layer_set_icon(selector->action_bar, BUTTON_ID_DOWN,
@@ -150,9 +141,6 @@ static void on_load(Window* window) {
 
   // Adjust the bounds we use to lay out the number layers for the fixed
   // elements.
-  bounds.size.h -= STATUS_BAR_LAYER_HEIGHT;
-  bounds.size.w -= ACTION_BAR_WIDTH;
-  bounds.origin.y = STATUS_BAR_LAYER_HEIGHT;
   number_layer_size = (GSize){
       .w = (bounds.size.w / 2) - (PADDING_SIZE * 1.5),
       .h = (bounds.size.h) - (PADDING_SIZE * 2),
@@ -167,8 +155,6 @@ static void on_load(Window* window) {
       "Week", 1, 9, selector->initial.week);
   layer_add_child(root, number_layer_get_layer(selector->week));
 
-  LOG_DEBUG("%s: number_layer_size: %d,%d", __func__, number_layer_size.w,
-            number_layer_size.h);
   selector->day = number_layer_create(
       (GRect){
           .origin = {(bounds.size.w / 2) + (0.5 * PADDING_SIZE),
@@ -186,8 +172,6 @@ static void on_unload(Window* window) {
   status_bar_layer_destroy(selector->status_bar);
   number_layer_destroy(selector->week);
   number_layer_destroy(selector->day);
-
-  LOG_DEBUG("on_unload: %p", window);
 }
 
 SelectorWindow* selector_window_create(SelectorCallbacks callbacks,
@@ -201,8 +185,6 @@ SelectorWindow* selector_window_create(SelectorCallbacks callbacks,
 
   selector->window = window_create();
   window_set_user_data(selector->window, selector);
-  LOG_DEBUG("%s, window: %p; selector: %p", __func__, selector->window,
-            selector);
 
   window_set_window_handlers(selector->window, (WindowHandlers){
                                                    .load = on_load,
@@ -215,16 +197,10 @@ SelectorWindow* selector_window_create(SelectorCallbacks callbacks,
 }
 
 void selector_window_destroy(SelectorWindow* selector) {
-  LOG_DEBUG("%s, window: %p; selector: %p", __func__, selector->window,
-            selector);
-
   window_destroy(selector->window);
   free(selector);
 }
 
 Window* selector_window_get_window(SelectorWindow* selector) {
-  LOG_DEBUG("%s, window: %p; selector: %p", __func__, selector->window,
-            selector);
-
   return selector->window;
 }

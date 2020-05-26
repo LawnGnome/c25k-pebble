@@ -19,7 +19,7 @@ struct _number_layer_t {
   int8_t value;
 
   char* label_str;
-  char value_str[4];
+  char value_str[5];
 
   // Internal layers.
   Layer* root;

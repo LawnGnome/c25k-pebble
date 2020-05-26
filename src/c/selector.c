@@ -127,7 +127,7 @@ static void on_disappear(Window* window) {}
 static void on_load(Window* window) {
   SelectorWindow* selector = selector_retrieve(window);
   Layer* root = window_get_root_layer(window);
-  GRect bounds = layer_get_unobstructed_bounds(root);
+  GRect bounds = calculate_bounds_with_status_action_bars(root);
   GSize number_layer_size;
 
   LOG_DEBUG("%s: window: %p; selector: %p", __func__, window, selector);

@@ -3,6 +3,9 @@
 #include "bitmap.h"
 #include "selector.h"
 
+static uint32_t PERSIST_KEY_WEEK = 1;
+static uint32_t PERSIST_KEY_DAY = 2;
+
 static ActivityWindow* activity;
 static SelectorWindow* selector;
 
@@ -11,22 +14,25 @@ static void on_cancel(void* userdata) {
 }
 
 static void on_selector_submit(int8_t week, int8_t day, void* userdata) {
+  persist_write_int(PERSIST_KEY_WEEK, week);
+  persist_write_int(PERSIST_KEY_DAY, day);
   activity_window_set_programme(activity, programme_get(week, day));
   window_stack_push(activity_window_get_window(activity), true);
 }
 
 int main(void) {
-  SelectorWindow* selector;
+  int32_t week, day;
 
   bitmap_init();
 
-  // TODO: pull initial state from a cache.
+  week = (int8_t)persist_read_int(PERSIST_KEY_WEEK);
+  day = (int8_t)persist_read_int(PERSIST_KEY_DAY);
   selector = selector_window_create(
       (SelectorCallbacks){
           .on_cancel = on_cancel,
           .on_submit = on_selector_submit,
       },
-      1, 1);
+      week ? week : 1, day ? day : 1);
 
   activity = activity_window_create((ActivityCallbacks){
       .on_back = on_cancel,

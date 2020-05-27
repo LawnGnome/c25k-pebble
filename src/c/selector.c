@@ -7,7 +7,11 @@
 
 static const uint16_t REPEAT_INTERVAL_MS = 250;
 
+#ifdef PBL_ROUND
+static const int16_t PADDING_SIZE = 15;
+#else
 static const int16_t PADDING_SIZE = 10;
+#endif
 
 typedef enum {
   SELECTOR_WEEK,

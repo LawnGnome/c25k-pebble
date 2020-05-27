@@ -7,10 +7,16 @@
 
 static const uint32_t MARKER_DEGREES = 2;
 static const int16_t MARKER_SIZE = 16;
-static const int16_t PADDING_SIZE = 5;
 static const int16_t PHASE_HEIGHT = 18;
-static const int16_t RADIAL_WIDTH = 10;
 static const uint32_t TIMER_TIMEOUT_MS = 500;
+
+#ifdef PBL_ROUND
+static const int16_t PADDING_SIZE = 30;
+static const int16_t RADIAL_WIDTH = 10;
+#else
+static const int16_t PADDING_SIZE = 5;
+static const int16_t RADIAL_WIDTH = 10;
+#endif
 
 struct ActivityWindow {
   time_t elapsed;
@@ -21,11 +27,14 @@ struct ActivityWindow {
   const Programme* programme;
 
   Window* window;
-  ActionBarLayer* action_bar;
   Layer* gfx;
   TextLayer* phase;
   StatusBarLayer* status_bar;
   TextLayer* time_remaining;
+
+#ifndef PBL_ROUND
+  ActionBarLayer* action_bar;
+#endif
 
   char phase_buffer[10];
   char time_remaining_buffer[24];
@@ -217,13 +226,25 @@ static void click_config_provider(void* ctx) {
 static void on_load(Window* window) {
   ActivityWindow* activity = (ActivityWindow*)window_get_user_data(window);
   Layer* root = window_get_root_layer(window);
-  GRect bounds = calculate_bounds_with_status_action_bars(root);
 
+#ifdef PBL_ROUND
+  // To centre a circle within the round watch screen, we have to ignore the
+  // status and action bars, and instead use extra padding to avoid overlaps.
+  GRect bounds = layer_get_bounds(root);
+#else
+  GRect bounds = calculate_bounds_with_status_action_bars(root);
+#endif
+
+#ifndef PBL_ROUND
   activity->action_bar = action_bar_layer_create();
   action_bar_layer_set_context(activity->action_bar, activity);
   action_bar_layer_set_click_config_provider(activity->action_bar,
                                              click_config_provider);
   action_bar_layer_add_to_window(activity->action_bar, activity->window);
+#else
+  window_set_click_config_provider_with_context(
+      activity->window, click_config_provider, activity);
+#endif
 
   activity->status_bar = status_bar_layer_create();
   layer_add_child(root, status_bar_layer_get_layer(activity->status_bar));
@@ -271,7 +292,10 @@ static void on_load(Window* window) {
 static void on_unload(Window* window) {
   ActivityWindow* activity = (ActivityWindow*)window_get_user_data(window);
 
+#ifndef PBL_ROUND
   action_bar_layer_destroy(activity->action_bar);
+#endif
+
   layer_destroy(activity->gfx);
   text_layer_destroy(activity->phase);
   status_bar_layer_destroy(activity->status_bar);
@@ -310,15 +334,19 @@ Window* activity_window_get_window(ActivityWindow* activity) {
 
 void activity_window_set_active(ActivityWindow* activity, bool active) {
   if (active) {
+#ifndef PBL_ROUND
     action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_SELECT,
                               image_pause);
+#endif
 
     activity->active = true;
     activity->started_at = time(NULL) - activity->elapsed;
     activity->timer = app_timer_register(TIMER_TIMEOUT_MS, on_tick, activity);
   } else {
+#ifndef PBL_ROUND
     action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_SELECT,
                               image_play);
+#endif
 
     activity->active = false;
     if (activity->timer) {

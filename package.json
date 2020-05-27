@@ -55,6 +55,12 @@
           "type": "bitmap",
           "name": "IMAGE_TICK",
           "file": "images/actionbar-icons/action_bar_icon_check.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/icon.png",
+          "menuIcon": true
         }
       ]
     }

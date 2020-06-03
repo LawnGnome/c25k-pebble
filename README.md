@@ -43,10 +43,11 @@ build, or `make release` to get a release build.
 
 ### Code organisation
 
-The general flow is pretty straightforward. There are two windows:
+The general flow is pretty straightforward. There are three windows:
 
 1. The "selector", which is used to select which activity to run, and
 2. The "activity", which displays the actual activity in progress.
+3. The "reward", which is shown at the end of an activity.
 
 These are encapsulated in corresponding source files, and are implemented in the
 same general pure C OO style as the Pebble API. There's also a "number" layer,

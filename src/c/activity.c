@@ -4,6 +4,7 @@
 
 #include "bitmap.h"
 #include "programme.h"
+#include "reward.h"
 
 static const uint32_t MARKER_DEGREES = 2;
 static const int16_t MARKER_SIZE = 16;
@@ -18,10 +19,16 @@ static const int16_t PADDING_SIZE = 5;
 static const int16_t RADIAL_WIDTH = 10;
 #endif
 
+typedef enum {
+  ACTIVITY_ACTIVE,
+  ACTIVITY_PAUSED,
+  ACTIVITY_COMPLETE,
+} ActivityState;
+
 struct ActivityWindow {
   time_t elapsed;
   time_t started_at;
-  bool active;
+  ActivityState state;
   AppTimer* timer;
 
   const Programme* programme;
@@ -31,6 +38,7 @@ struct ActivityWindow {
   TextLayer* phase;
   StatusBarLayer* status_bar;
   TextLayer* time_remaining;
+  RewardWindow* reward;
 
 #ifndef PBL_ROUND
   ActionBarLayer* action_bar;
@@ -144,7 +152,7 @@ static void on_update_proc(Layer* layer, GContext* ctx) {
 }
 
 static void update_text_labels(ActivityWindow* activity) {
-  if (activity->active) {
+  if (activity->state == ACTIVITY_ACTIVE) {
     time_t phase_remaining =
         programme_phase_remaining_at(activity->programme, activity->elapsed);
 
@@ -173,12 +181,29 @@ static void update_text_labels(ActivityWindow* activity) {
   }
 }
 
+static void on_reward_back(void* userdata) {
+  ActivityWindow* activity = (ActivityWindow*)userdata;
+
+  window_stack_pop(true);
+  (activity->callbacks.on_back)(activity->callbacks.userdata);
+}
+
+static void activity_complete(ActivityWindow* activity) {
+  activity->reward = reward_window_create((RewardCallbacks){
+      .on_back = on_reward_back,
+      .userdata = activity,
+  });
+
+  window_stack_push(reward_window_get_window(activity->reward), true);
+}
+
 static void on_tick(void* userdata) {
   ActivityWindow* activity = (ActivityWindow*)userdata;
 
   activity->elapsed = time(NULL) - activity->started_at;
   if (activity->elapsed >= programme_duration(activity->programme)) {
     activity_window_set_active(activity, false);
+    activity_complete(activity);
   } else {
     // We have to chain timers because the TimerService doesn't allow for
     // userdata to be provided. This is going to use more battery, but provides
@@ -188,6 +213,11 @@ static void on_tick(void* userdata) {
 
   layer_mark_dirty(activity->gfx);
   update_text_labels(activity);
+
+  LOG_DEBUG(
+      "at: %lld; phase elapsed: %lld; phase remaining: %lld", activity->elapsed,
+      programme_phase_elapsed_at(activity->programme, activity->elapsed),
+      programme_phase_remaining_at(activity->programme, activity->elapsed));
 }
 
 static void on_appear(Window* window) {
@@ -213,7 +243,8 @@ static void on_button_back(ClickRecognizerRef ref, void* ctx) {
 static void on_button_select(ClickRecognizerRef ref, void* ctx) {
   ActivityWindow* activity = (ActivityWindow*)ctx;
 
-  activity_window_set_active(activity, !activity->active);
+  activity_window_set_active(activity,
+                             activity->state == ACTIVITY_PAUSED ? true : false);
   layer_mark_dirty(activity->gfx);
   update_text_labels(activity);
 }
@@ -221,7 +252,7 @@ static void on_button_select(ClickRecognizerRef ref, void* ctx) {
 static void on_button_up(ClickRecognizerRef ref, void* ctx) {
   ActivityWindow* activity = (ActivityWindow*)ctx;
 
-  if (activity->active) {
+  if (activity->state == ACTIVITY_ACTIVE) {
     time_t phase_remaining =
         programme_phase_remaining_at(activity->programme, activity->elapsed);
 
@@ -238,7 +269,7 @@ static void on_button_up(ClickRecognizerRef ref, void* ctx) {
 static void on_button_down(ClickRecognizerRef ref, void* ctx) {
   ActivityWindow* activity = (ActivityWindow*)ctx;
 
-  if (activity->active) {
+  if (activity->state == ACTIVITY_ACTIVE) {
     time_t phase_elapsed =
         programme_phase_elapsed_at(activity->programme, activity->elapsed);
 
@@ -350,9 +381,10 @@ ActivityWindow* activity_window_create(ActivityCallbacks callbacks) {
   ActivityWindow* activity = malloc(sizeof(ActivityWindow));
 
   activity->elapsed = 0;
-  activity->active = false;
+  activity->state = ACTIVITY_PAUSED;
   activity->programme = NULL;
   activity->callbacks = callbacks;
+  activity->reward = NULL;
 
   activity->window = window_create();
   window_set_user_data(activity->window, activity);
@@ -368,6 +400,9 @@ ActivityWindow* activity_window_create(ActivityCallbacks callbacks) {
 }
 
 void activity_window_destroy(ActivityWindow* activity) {
+  if (activity->reward) {
+    reward_window_destroy(activity->reward);
+  }
   window_destroy(activity->window);
   free(activity);
 }
@@ -381,18 +416,24 @@ void activity_window_set_active(ActivityWindow* activity, bool active) {
 #ifndef PBL_ROUND
     action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_SELECT,
                               image_pause);
+    action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_UP,
+                              image_skip_forward);
+    action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_DOWN,
+                              image_skip_backward);
 #endif
 
-    activity->active = true;
+    activity->state = ACTIVITY_ACTIVE;
     activity->started_at = time(NULL) - activity->elapsed;
     activity->timer = app_timer_register(TIMER_TIMEOUT_MS, on_tick, activity);
   } else {
 #ifndef PBL_ROUND
     action_bar_layer_set_icon(activity->action_bar, BUTTON_ID_SELECT,
                               image_play);
+    action_bar_layer_clear_icon(activity->action_bar, BUTTON_ID_UP);
+    action_bar_layer_clear_icon(activity->action_bar, BUTTON_ID_DOWN);
 #endif
 
-    activity->active = false;
+    activity->state = ACTIVITY_PAUSED;
     if (activity->timer) {
       app_timer_cancel(activity->timer);
       activity->timer = NULL;

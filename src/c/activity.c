@@ -213,11 +213,6 @@ static void on_tick(void* userdata) {
 
   layer_mark_dirty(activity->gfx);
   update_text_labels(activity);
-
-  LOG_DEBUG(
-      "at: %lld; phase elapsed: %lld; phase remaining: %lld", activity->elapsed,
-      programme_phase_elapsed_at(activity->programme, activity->elapsed),
-      programme_phase_remaining_at(activity->programme, activity->elapsed));
 }
 
 static void on_appear(Window* window) {

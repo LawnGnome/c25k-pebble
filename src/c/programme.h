@@ -23,6 +23,7 @@ extern const Programme* programme_get(int8_t week, int8_t day);
 extern void programme_iterate_states(const Programme* programme,
                                      ProgrammeStateIterator on_state,
                                      void* userdata);
+extern time_t programme_phase_elapsed_at(const Programme* programme, time_t at);
 extern time_t programme_phase_remaining_at(const Programme* programme,
                                            time_t at);
 extern ProgrammeState programme_state_at(const Programme* programme, time_t at);

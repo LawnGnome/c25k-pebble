@@ -218,9 +218,53 @@ static void on_button_select(ClickRecognizerRef ref, void* ctx) {
   update_text_labels(activity);
 }
 
+static void on_button_up(ClickRecognizerRef ref, void* ctx) {
+  ActivityWindow* activity = (ActivityWindow*)ctx;
+
+  if (activity->active) {
+    time_t phase_remaining =
+        programme_phase_remaining_at(activity->programme, activity->elapsed);
+
+    if (activity->elapsed + phase_remaining >=
+        programme_duration(activity->programme)) {
+      activity_complete(activity);
+      return;
+    }
+
+    activity->started_at -= phase_remaining;
+  }
+}
+
+static void on_button_down(ClickRecognizerRef ref, void* ctx) {
+  ActivityWindow* activity = (ActivityWindow*)ctx;
+
+  if (activity->active) {
+    time_t phase_elapsed =
+        programme_phase_elapsed_at(activity->programme, activity->elapsed);
+
+    // If we're less than five seconds into the phase, we want to go back to the
+    // start of the _previous_ phase.
+    if (phase_elapsed < 5) {
+      // Special case: just go back to the start if this is the first phase.
+      if (activity->elapsed - activity->started_at < 5) {
+        activity->started_at = time(NULL);
+        return;
+      }
+
+      activity->started_at += programme_phase_elapsed_at(
+                                  activity->programme, activity->elapsed - 5) +
+                              5;
+    }
+
+    activity->started_at += phase_elapsed + 1;
+  }
+}
+
 static void click_config_provider(void* ctx) {
   window_single_click_subscribe(BUTTON_ID_BACK, on_button_back);
   window_single_click_subscribe(BUTTON_ID_SELECT, on_button_select);
+  window_single_click_subscribe(BUTTON_ID_UP, on_button_up);
+  window_single_click_subscribe(BUTTON_ID_DOWN, on_button_down);
 }
 
 static void on_load(Window* window) {

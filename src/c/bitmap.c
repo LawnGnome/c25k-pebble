@@ -5,6 +5,8 @@ GBitmap* image_arrow_right;
 GBitmap* image_arrow_up;
 GBitmap* image_pause;
 GBitmap* image_play;
+GBitmap* image_skip_backward;
+GBitmap* image_skip_forward;
 GBitmap* image_tick;
 
 typedef struct {
@@ -18,6 +20,8 @@ static const BitmapMapping mappings[] = {
     {RESOURCE_ID_IMAGE_ARROW_UP, &image_arrow_up},
     {RESOURCE_ID_IMAGE_PAUSE, &image_pause},
     {RESOURCE_ID_IMAGE_PLAY, &image_play},
+    {RESOURCE_ID_IMAGE_SKIP_BACKWARD, &image_skip_backward},
+    {RESOURCE_ID_IMAGE_SKIP_FORWARD, &image_skip_forward},
     {RESOURCE_ID_IMAGE_TICK, &image_tick},
 };
 

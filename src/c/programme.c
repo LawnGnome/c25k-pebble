@@ -309,6 +309,23 @@ void programme_iterate_states(const Programme* programme,
   }
 }
 
+time_t programme_phase_elapsed_at(const Programme* programme, time_t at) {
+  time_t duration = 0;
+  size_t i;
+
+  for (i = 0; programme->phases[i].state != PROGRAMME_STATE_END; i++) {
+    time_t phase_duration = programme->phases[i].duration;
+
+    if ((duration + phase_duration) > at) {
+      return at - duration;
+    }
+
+    duration += phase_duration;
+  }
+
+  return 0;
+}
+
 time_t programme_phase_remaining_at(const Programme* programme, time_t at) {
   time_t duration = 0;
   size_t i;

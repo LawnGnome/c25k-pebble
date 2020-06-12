@@ -41,7 +41,7 @@ please.
 The Makefile includes some handy rules, so you can also `make` to get a debug
 build, or `make release` to get a release build.
 
-### Code organisation
+### Code organization
 
 The general flow is pretty straightforward. There are three windows:
 

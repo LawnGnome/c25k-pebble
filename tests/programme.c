@@ -11,6 +11,16 @@
 #define C25K_PEBBLE_H_INCLUDED
 #include "../src/c/programme.c"
 
+static void test_w2d3(void** state) {
+  // user 'selects' week 2, day 3 through UI
+  const int8_t week = 2;
+  const int8_t day = 3;
+
+  // Call programme_get when user submits 'selection' (see on_selector_submit(...))
+  const Programme *prog = programme_get(week, day);
+  assert_non_null(prog);
+}
+
 static void test_sanity(void** state) {
   size_t i;
 
@@ -37,6 +47,7 @@ static void test_sanity(void** state) {
 int main(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_sanity),
+      cmocka_unit_test(test_w2d3),
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
